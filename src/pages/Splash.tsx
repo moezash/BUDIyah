@@ -36,29 +36,31 @@ const Splash = () => {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 flex flex-col items-center justify-between min-h-screen px-8 py-12">
+      <div className="relative z-10 flex flex-col items-center justify-between min-h-screen px-6 py-8 sm:px-8 sm:py-12 max-w-md mx-auto w-full">
         <div className="flex-1" />
         
-        <div className="text-center mb-32">
-          <h1 className="text-5xl font-bold text-gray-900 mb-2">
+        <div className="text-center mb-20 sm:mb-32">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900">
             Selamat Datang!
           </h1>
         </div>
 
-        <div className="mb-12">
+        <div className="mb-8 sm:mb-12 w-full flex justify-end pr-4">
           <Button
             onClick={() => navigate("/login")}
-            className="bg-white/20 hover:bg-white/30 text-gray-700 backdrop-blur-sm border-none rounded-full px-8 py-6 flex items-center gap-3 shadow-lg transition-all duration-300 hover:scale-105"
+            className="bg-transparent hover:bg-white/10 text-gray-700 border-none rounded-full p-0 shadow-none transition-all duration-300 hover:scale-105"
           >
-            <span className="text-lg font-medium">Lanjutkan</span>
-            <div className="bg-primary rounded-full p-2">
-              <ArrowRight className="w-5 h-5 text-white" />
+            <div className="flex items-center gap-2">
+              <span className="text-base sm:text-lg font-medium">Lanjutkan</span>
+              <div className="bg-primary rounded-full p-3 shadow-lg">
+                <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+              </div>
             </div>
           </Button>
         </div>
 
         {/* Bottom indicator */}
-        <div className="w-32 h-1.5 bg-gray-900 rounded-full" />
+        <div className="w-24 sm:w-32 h-1 sm:h-1.5 bg-gray-900 rounded-full mb-2" />
       </div>
     </div>
   );
