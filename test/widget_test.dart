@@ -1,0 +1,41 @@
+// This is a basic Flutter widget test.
+//
+// To perform an interaction with a widget in your test, use the WidgetTester
+// utility in the flutter_test package. For example, you can send tap and scroll
+// gestures. You can also use WidgetTester to find child widgets in the widget
+// tree, read text, and verify that the values of widget properties are correct.
+
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+import 'package:flutter_app/main.dart';
+
+void main() {
+  testWidgets('Login page renders and toggles controls', (WidgetTester tester) async {
+    await tester.pumpWidget(const SparkleLoginApp());
+    await tester.pumpAndSettle();
+
+    expect(find.text('Selamat Datang!'), findsOneWidget);
+
+    await tester.tap(find.text('Lanjutkan'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Masuk'), findsOneWidget);
+    expect(find.text('Email'), findsOneWidget);
+    expect(find.text('Password'), findsOneWidget);
+    expect(find.text('Login'), findsOneWidget);
+    expect(find.byType(TextField), findsNWidgets(2));
+
+    final checkboxFinder = find.byType(Checkbox);
+    await tester.ensureVisible(checkboxFinder);
+    final checkboxWidget = tester.widget<Checkbox>(checkboxFinder);
+    checkboxWidget.onChanged?.call(true);
+    await tester.pump();
+    expect(tester.widget<Checkbox>(checkboxFinder).value, isTrue);
+
+    final visibilityButton = tester.widget<IconButton>(find.byType(IconButton).first);
+    visibilityButton.onPressed?.call();
+    await tester.pump();
+    expect(find.byIcon(Icons.visibility_off_outlined), findsOneWidget);
+  });
+}
