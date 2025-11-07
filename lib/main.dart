@@ -8,7 +8,6 @@ void main() {
 
 const Color _backgroundColor = Color(0xFFFF9B9B);
 const Color _primaryColor = Color(0xFFFF857D);
-const Color _primarySoft = Color(0xFFFFB6AD);
 const Color _accentColor = Color(0xFFFF6F6A);
 const Color _textDark = Color(0xFF1F1F1F);
 const Color _textMuted = Color(0xFF6E6E73);
@@ -34,6 +33,7 @@ class SparkleLoginApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         scaffoldBackgroundColor: _backgroundColor,
+        fontFamily: 'Inter',
         colorScheme: ColorScheme.fromSeed(
           seedColor: _primaryColor,
           primary: _primaryColor,
@@ -42,23 +42,124 @@ class SparkleLoginApp extends StatelessWidget {
           cursorColor: _primaryColor,
           selectionColor: Color(0x33FFA399),
         ),
+        textTheme: const TextTheme(
+          displayLarge: TextStyle(
+            fontFamily: 'Inter',
+            fontWeight: FontWeight.w800,
+          ),
+          displayMedium: TextStyle(
+            fontFamily: 'Inter',
+            fontWeight: FontWeight.w700,
+          ),
+          displaySmall: TextStyle(
+            fontFamily: 'Inter',
+            fontWeight: FontWeight.w600,
+          ),
+          headlineLarge: TextStyle(
+            fontFamily: 'Inter',
+            fontWeight: FontWeight.w700,
+          ),
+          headlineMedium: TextStyle(
+            fontFamily: 'Inter',
+            fontWeight: FontWeight.w600,
+          ),
+          bodyLarge: TextStyle(
+            fontFamily: 'Inter',
+            fontWeight: FontWeight.w500,
+          ),
+          bodyMedium: TextStyle(
+            fontFamily: 'Inter',
+            fontWeight: FontWeight.w400,
+          ),
+        ),
       ),
       initialRoute: '/',
       routes: {
         '/': (_) => const SplashPage(),
         '/login': (_) => const LoginPage(),
         '/signup': (_) => const SignupPage(),
-        '/home': (_) => const HomePage(),
       },
       onUnknownRoute: (settings) => MaterialPageRoute<void>(
-        builder: (_) => NotFoundPage(requestedRoute: settings.name ?? 'unknown'),
+        builder: (_) =>
+            NotFoundPage(requestedRoute: settings.name ?? 'unknown'),
       ),
     );
   }
 }
 
-class SplashPage extends StatelessWidget {
+class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
+
+  @override
+  State<SplashPage> createState() => _SplashPageState();
+}
+
+class _SplashPageState extends State<SplashPage>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 1200),
+      vsync: this,
+    );
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
+      ),
+    );
+
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: const Interval(0.2, 0.8, curve: Curves.easeOutCubic),
+          ),
+        );
+
+    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.4, 1.0, curve: Curves.easeOutBack),
+      ),
+    );
+
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _navigateToLogin() {
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            const LoginPage(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          const begin = Offset(1.0, 0.0);
+          const end = Offset.zero;
+          const curve = Curves.easeInOutCubic;
+          var tween = Tween(
+            begin: begin,
+            end: end,
+          ).chain(CurveTween(curve: curve));
+          var offsetAnimation = animation.drive(tween);
+          return SlideTransition(position: offsetAnimation, child: child);
+        },
+        transitionDuration: const Duration(milliseconds: 600),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -72,9 +173,7 @@ class SplashPage extends StatelessWidget {
               decoration: const BoxDecoration(gradient: _backgroundGradient),
               child: Opacity(
                 opacity: 0.32,
-                child: CustomPaint(
-                  painter: const _TopographicPatternPainter(),
-                ),
+                child: CustomPaint(painter: const _TopographicPatternPainter()),
               ),
             ),
           ),
@@ -99,58 +198,87 @@ class SplashPage extends StatelessWidget {
                   const _StatusBar(),
                   const SizedBox(height: 48),
                   const Spacer(),
-                  const Text(
-                    'Selamat Datang!',
-                    style: TextStyle(
-                      fontSize: 44,
-                      fontWeight: FontWeight.bold,
-                      color: _textDark,
-                      height: 1.05,
+                  FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: SlideTransition(
+                      position: _slideAnimation,
+                      child: const Text(
+                        'Selamat Datang!',
+                        style: TextStyle(
+                          fontSize: 42,
+                          fontWeight: FontWeight.w800,
+                          color: _textDark,
+                          height: 1.15,
+                          letterSpacing: -1.2,
+                        ),
+                      ),
                     ),
                   ),
                   const Spacer(),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
-                      style: TextButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        foregroundColor: _textMuted,
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Padding(
-                            padding: EdgeInsets.only(right: 12),
-                            child: Text(
-                              'Lanjutkan',
-                              style: TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w500,
-                                color: _textMuted,
+                  ScaleTransition(
+                    scale: _scaleAnimation,
+                    child: FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: _navigateToLogin,
+                            borderRadius: BorderRadius.circular(30),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 28,
+                                      vertical: 16,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      gradient: const LinearGradient(
+                                        colors: [_primaryColor, _accentColor],
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                      ),
+                                      borderRadius: BorderRadius.circular(30),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: _primaryColor.withValues(
+                                            alpha: 0.4,
+                                          ),
+                                          blurRadius: 20,
+                                          offset: const Offset(0, 10),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: const [
+                                        Text(
+                                          'Lanjutkan',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w700,
+                                            color: Colors.white,
+                                            letterSpacing: 0.5,
+                                          ),
+                                        ),
+                                        SizedBox(width: 8),
+                                        Icon(
+                                          Icons.arrow_forward_rounded,
+                                          size: 20,
+                                          color: Colors.white,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
-                          Container(
-                            decoration: BoxDecoration(
-                              color: _primaryColor,
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: _primaryColor.withValues(alpha: 0.45),
-                                  blurRadius: 18,
-                                  offset: const Offset(0, 8),
-                                ),
-                              ],
-                            ),
-                            padding: const EdgeInsets.all(14),
-                            child: const Icon(
-                              Icons.arrow_forward_rounded,
-                              size: 22,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
                     ),
                   ),
@@ -182,7 +310,9 @@ class _LoginPageState extends State<LoginPage> {
     final media = MediaQuery.of(context);
     final size = media.size;
     final bottomInset = media.padding.bottom;
-    final double panelHeight = math.max(size.height * 0.68, 520.0).clamp(0.0, size.height);
+    final double panelHeight = math
+        .max(size.height * 0.68, 520.0)
+        .clamp(0.0, size.height);
 
     return Scaffold(
       body: Stack(
@@ -192,9 +322,7 @@ class _LoginPageState extends State<LoginPage> {
               decoration: const BoxDecoration(gradient: _backgroundGradient),
               child: Opacity(
                 opacity: 0.32,
-                child: CustomPaint(
-                  painter: const _TopographicPatternPainter(),
-                ),
+                child: CustomPaint(painter: const _TopographicPatternPainter()),
               ),
             ),
           ),
@@ -262,10 +390,11 @@ class _LoginPageState extends State<LoginPage> {
         const Text(
           'Masuk',
           style: TextStyle(
-            fontSize: 32,
-            fontWeight: FontWeight.w700,
+            fontSize: 34,
+            fontWeight: FontWeight.w800,
             color: _textDark,
-            letterSpacing: -0.2,
+            letterSpacing: -0.8,
+            height: 1.15,
           ),
         ),
         const SizedBox(height: 6),
@@ -304,22 +433,24 @@ class _LoginPageState extends State<LoginPage> {
           ),
           decoration: InputDecoration(
             hintText: 'musagwanteng@gmail.com',
-            hintStyle: const TextStyle(
-              fontSize: 15,
-              color: Color(0x996B7078),
-            ),
+            hintStyle: const TextStyle(fontSize: 15, color: Color(0x996B7078)),
             prefixIcon: const Padding(
               padding: EdgeInsets.only(left: 4, right: 12),
-              child: Icon(
-                Icons.mail_outline,
-                size: 18,
-                color: _textMuted,
-              ),
+              child: Icon(Icons.mail_outline, size: 18, color: _textMuted),
             ),
-            prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
-            contentPadding: const EdgeInsets.only(left: 4, right: 4, bottom: 12),
+            prefixIconConstraints: const BoxConstraints(
+              minWidth: 0,
+              minHeight: 0,
+            ),
+            contentPadding: const EdgeInsets.only(
+              left: 4,
+              right: 4,
+              bottom: 12,
+            ),
             enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: _dividerColor.withValues(alpha: 0.4)),
+              borderSide: BorderSide(
+                color: _dividerColor.withValues(alpha: 0.4),
+              ),
             ),
             focusedBorder: const UnderlineInputBorder(
               borderSide: BorderSide(color: _dividerColor, width: 1.6),
@@ -354,24 +485,22 @@ class _LoginPageState extends State<LoginPage> {
           ),
           decoration: InputDecoration(
             hintText: 'Masukkan Password Anda',
-            hintStyle: const TextStyle(
-              fontSize: 15,
-              color: Color(0x996B7078),
-            ),
+            hintStyle: const TextStyle(fontSize: 15, color: Color(0x996B7078)),
             prefixIcon: const Padding(
               padding: EdgeInsets.only(left: 4, right: 12),
-              child: Icon(
-                Icons.lock_outline,
-                size: 18,
-                color: _textMuted,
-              ),
+              child: Icon(Icons.lock_outline, size: 18, color: _textMuted),
             ),
-            prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
+            prefixIconConstraints: const BoxConstraints(
+              minWidth: 0,
+              minHeight: 0,
+            ),
             suffixIcon: IconButton(
               padding: EdgeInsets.zero,
               visualDensity: VisualDensity.compact,
               icon: Icon(
-                _showPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                _showPassword
+                    ? Icons.visibility_off_outlined
+                    : Icons.visibility_outlined,
                 size: 20,
                 color: _textMuted,
               ),
@@ -381,9 +510,15 @@ class _LoginPageState extends State<LoginPage> {
                 });
               },
             ),
-            contentPadding: const EdgeInsets.only(left: 4, right: 8, bottom: 12),
+            contentPadding: const EdgeInsets.only(
+              left: 4,
+              right: 8,
+              bottom: 12,
+            ),
             enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: _dividerColor.withValues(alpha: 0.4)),
+              borderSide: BorderSide(
+                color: _dividerColor.withValues(alpha: 0.4),
+              ),
             ),
             focusedBorder: const UnderlineInputBorder(
               borderSide: BorderSide(color: _dividerColor, width: 1.6),
@@ -398,30 +533,28 @@ class _LoginPageState extends State<LoginPage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Row(
-          children: [
-            Checkbox(
-              value: _rememberMe,
-              onChanged: (value) {
-                setState(() => _rememberMe = value ?? false);
-              },
-              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              visualDensity: VisualDensity.compact,
-              side: BorderSide(color: _accentColor.withValues(alpha: 0.9), width: 1.5),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(3)),
-              activeColor: _accentColor,
-              checkColor: Colors.white,
-            ),
-            const SizedBox(width: 8),
-            const Text(
-              'Ingat Saya',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: _textMuted,
+        GestureDetector(
+          onTap: () {
+            setState(() => _rememberMe = !_rememberMe);
+          },
+          child: Row(
+            children: [
+              Icon(
+                _rememberMe ? Icons.check_circle : Icons.radio_button_unchecked,
+                size: 20,
+                color: _accentColor,
               ),
-            ),
-          ],
+              const SizedBox(width: 8),
+              const Text(
+                'Ingat Saya',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: _textMuted,
+                ),
+              ),
+            ],
+          ),
         ),
         TextButton(
           onPressed: () {},
@@ -433,10 +566,7 @@ class _LoginPageState extends State<LoginPage> {
           ),
           child: const Text(
             'Lupa Password?',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-            ),
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
           ),
         ),
       ],
@@ -444,23 +574,71 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Widget _buildLoginButton() {
-    return ElevatedButton(
-      onPressed: () => Navigator.pushNamed(context, '/home'),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: _primaryColor,
-        foregroundColor: Colors.white,
-        elevation: 2,
-        shadowColor: _primarySoft.withValues(alpha: 0.4),
-        padding: const EdgeInsets.symmetric(vertical: 18),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        gradient: const LinearGradient(
+          colors: [_primaryColor, _accentColor],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: _primaryColor.withValues(alpha: 0.5),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+            spreadRadius: 0,
+          ),
+        ],
       ),
-      child: const Text(
-        'Login',
-        style: TextStyle(
-          fontSize: 17,
-          fontWeight: FontWeight.w600,
+      child: ElevatedButton(
+        onPressed: () {
+          Navigator.of(context).push(
+            PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) =>
+                  const HomePage(),
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                    const begin = Offset(0.0, 1.0);
+                    const end = Offset.zero;
+                    const curve = Curves.easeInOutCubic;
+                    var tween = Tween(
+                      begin: begin,
+                      end: end,
+                    ).chain(CurveTween(curve: curve));
+                    var offsetAnimation = animation.drive(tween);
+                    return SlideTransition(
+                      position: offsetAnimation,
+                      child: child,
+                    );
+                  },
+              transitionDuration: const Duration(milliseconds: 500),
+            ),
+          );
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.transparent,
+          foregroundColor: Colors.white,
+          shadowColor: Colors.transparent,
+          padding: const EdgeInsets.symmetric(vertical: 18),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: const [
+            Text(
+              'Masuk',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.5,
+              ),
+            ),
+            SizedBox(width: 8),
+            Icon(Icons.arrow_forward_rounded, size: 18),
+          ],
         ),
       ),
     );
@@ -473,13 +651,33 @@ class _LoginPageState extends State<LoginPage> {
         children: [
           const Text(
             'Tidak punya akun? ',
-            style: TextStyle(
-              fontSize: 15,
-              color: _textMuted,
-            ),
+            style: TextStyle(fontSize: 15, color: _textMuted),
           ),
           TextButton(
-            onPressed: () => Navigator.pushNamed(context, '/signup'),
+            onPressed: () {
+              Navigator.of(context).push(
+                PageRouteBuilder(
+                  pageBuilder: (context, animation, secondaryAnimation) =>
+                      const SignupPage(),
+                  transitionsBuilder:
+                      (context, animation, secondaryAnimation, child) {
+                        const begin = Offset(1.0, 0.0);
+                        const end = Offset.zero;
+                        const curve = Curves.easeInOutCubic;
+                        var tween = Tween(
+                          begin: begin,
+                          end: end,
+                        ).chain(CurveTween(curve: curve));
+                        var offsetAnimation = animation.drive(tween);
+                        return SlideTransition(
+                          position: offsetAnimation,
+                          child: child,
+                        );
+                      },
+                  transitionDuration: const Duration(milliseconds: 500),
+                ),
+              );
+            },
             style: TextButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 2),
               minimumSize: const Size(0, 0),
@@ -488,10 +686,7 @@ class _LoginPageState extends State<LoginPage> {
             ),
             child: const Text(
               'Sign up',
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-              ),
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
             ),
           ),
         ],
@@ -516,7 +711,9 @@ class _SignupPageState extends State<SignupPage> {
     final media = MediaQuery.of(context);
     final size = media.size;
     final bottomInset = media.padding.bottom;
-    final double panelHeight = math.max(size.height * 0.7, 560.0).clamp(0.0, size.height);
+    final double panelHeight = math
+        .max(size.height * 0.7, 560.0)
+        .clamp(0.0, size.height);
 
     return Scaffold(
       body: Stack(
@@ -526,9 +723,7 @@ class _SignupPageState extends State<SignupPage> {
               decoration: const BoxDecoration(gradient: _backgroundGradient),
               child: Opacity(
                 opacity: 0.32,
-                child: CustomPaint(
-                  painter: const _TopographicPatternPainter(),
-                ),
+                child: CustomPaint(painter: const _TopographicPatternPainter()),
               ),
             ),
           ),
@@ -598,10 +793,11 @@ class _SignupPageState extends State<SignupPage> {
         const Text(
           'Daftar',
           style: TextStyle(
-            fontSize: 32,
-            fontWeight: FontWeight.w700,
+            fontSize: 34,
+            fontWeight: FontWeight.w800,
             color: _textDark,
-            letterSpacing: -0.2,
+            letterSpacing: -0.8,
+            height: 1.15,
           ),
         ),
         const SizedBox(height: 6),
@@ -736,7 +932,8 @@ class _SignupPageState extends State<SignupPage> {
             icon: Icons.lock_outline,
             toggleVisible: true,
             showValue: _showConfirmPassword,
-            onToggle: () => setState(() => _showConfirmPassword = !_showConfirmPassword),
+            onToggle: () =>
+                setState(() => _showConfirmPassword = !_showConfirmPassword),
           ),
         ),
       ],
@@ -752,17 +949,10 @@ class _SignupPageState extends State<SignupPage> {
   }) {
     return InputDecoration(
       hintText: hintText,
-      hintStyle: const TextStyle(
-        fontSize: 15,
-        color: Color(0x996B7078),
-      ),
+      hintStyle: const TextStyle(fontSize: 15, color: Color(0x996B7078)),
       prefixIcon: Padding(
         padding: const EdgeInsets.only(left: 4, right: 12),
-        child: Icon(
-          icon,
-          size: 18,
-          color: _textMuted,
-        ),
+        child: Icon(icon, size: 18, color: _textMuted),
       ),
       prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
       suffixIcon: toggleVisible
@@ -770,7 +960,9 @@ class _SignupPageState extends State<SignupPage> {
               padding: EdgeInsets.zero,
               visualDensity: VisualDensity.compact,
               icon: Icon(
-                showValue ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                showValue
+                    ? Icons.visibility_off_outlined
+                    : Icons.visibility_outlined,
                 size: 20,
                 color: _textMuted,
               ),
@@ -788,23 +980,71 @@ class _SignupPageState extends State<SignupPage> {
   }
 
   Widget _buildCreateAccountButton() {
-    return ElevatedButton(
-      onPressed: () => Navigator.pushNamed(context, '/home'),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: _primaryColor,
-        foregroundColor: Colors.white,
-        elevation: 4,
-        shadowColor: _primaryColor.withValues(alpha: 0.4),
-        padding: const EdgeInsets.symmetric(vertical: 18),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        gradient: const LinearGradient(
+          colors: [_primaryColor, _accentColor],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: _primaryColor.withValues(alpha: 0.5),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+            spreadRadius: 0,
+          ),
+        ],
       ),
-      child: const Text(
-        'Create Account',
-        style: TextStyle(
-          fontSize: 17,
-          fontWeight: FontWeight.w600,
+      child: ElevatedButton(
+        onPressed: () {
+          Navigator.of(context).push(
+            PageRouteBuilder(
+              pageBuilder: (context, animation, secondaryAnimation) =>
+                  const HomePage(),
+              transitionsBuilder:
+                  (context, animation, secondaryAnimation, child) {
+                    const begin = Offset(0.0, 1.0);
+                    const end = Offset.zero;
+                    const curve = Curves.easeInOutCubic;
+                    var tween = Tween(
+                      begin: begin,
+                      end: end,
+                    ).chain(CurveTween(curve: curve));
+                    var offsetAnimation = animation.drive(tween);
+                    return SlideTransition(
+                      position: offsetAnimation,
+                      child: child,
+                    );
+                  },
+              transitionDuration: const Duration(milliseconds: 500),
+            ),
+          );
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.transparent,
+          foregroundColor: Colors.white,
+          shadowColor: Colors.transparent,
+          padding: const EdgeInsets.symmetric(vertical: 18),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: const [
+            Text(
+              'Buat Akun',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.5,
+              ),
+            ),
+            SizedBox(width: 8),
+            Icon(Icons.arrow_forward_rounded, size: 18),
+          ],
         ),
       ),
     );
@@ -817,13 +1057,33 @@ class _SignupPageState extends State<SignupPage> {
         children: [
           const Text(
             'Sudah punya akun? ',
-            style: TextStyle(
-              fontSize: 15,
-              color: _textMuted,
-            ),
+            style: TextStyle(fontSize: 15, color: _textMuted),
           ),
           TextButton(
-            onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
+            onPressed: () {
+              Navigator.of(context).pushReplacement(
+                PageRouteBuilder(
+                  pageBuilder: (context, animation, secondaryAnimation) =>
+                      const LoginPage(),
+                  transitionsBuilder:
+                      (context, animation, secondaryAnimation, child) {
+                        const begin = Offset(-1.0, 0.0);
+                        const end = Offset.zero;
+                        const curve = Curves.easeInOutCubic;
+                        var tween = Tween(
+                          begin: begin,
+                          end: end,
+                        ).chain(CurveTween(curve: curve));
+                        var offsetAnimation = animation.drive(tween);
+                        return SlideTransition(
+                          position: offsetAnimation,
+                          child: child,
+                        );
+                      },
+                  transitionDuration: const Duration(milliseconds: 500),
+                ),
+              );
+            },
             style: TextButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 2),
               minimumSize: const Size(0, 0),
@@ -832,10 +1092,7 @@ class _SignupPageState extends State<SignupPage> {
             ),
             child: const Text(
               'Login',
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-              ),
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
             ),
           ),
         ],
@@ -844,26 +1101,1122 @@ class _SignupPageState extends State<SignupPage> {
   }
 }
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  int _selectedIndex = 0;
+
+  final List<Widget> _pages = [const _HomeContent(), const ProfilePage()];
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: _primaryColor,
-        title: const Text('Sparkle Home'),
+      body: _pages[_selectedIndex],
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 10,
+              offset: const Offset(0, -2),
+            ),
+          ],
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _selectedIndex,
+          onTap: _onItemTapped,
+          backgroundColor: Colors.white,
+          selectedItemColor: _primaryColor,
+          unselectedItemColor: _textMuted,
+          selectedFontSize: 12,
+          unselectedFontSize: 12,
+          type: BottomNavigationBarType.fixed,
+          elevation: 0,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home_rounded),
+              label: 'Beranda',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person_rounded),
+              label: 'Profil',
+            ),
+          ],
+        ),
       ),
-      body: const Center(
-        child: Padding(
-          padding: EdgeInsets.all(24),
-          child: Text(
-            'Welcome to Sparkle!',
+    );
+  }
+}
+
+class _HomeContent extends StatefulWidget {
+  const _HomeContent();
+
+  @override
+  State<_HomeContent> createState() => _HomeContentState();
+}
+
+class _HomeContentState extends State<_HomeContent>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _pulseController;
+  final List<String> _moods = ['🌸', '✨', '🎨', '🌺', '💫'];
+  int _currentMoodIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseController = AnimationController(
+      duration: const Duration(seconds: 2),
+      vsync: this,
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Stack(
+        children: [
+          // Background dengan pattern
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    _primaryColor.withValues(alpha: 0.05),
+                    Colors.white,
+                    _accentColor.withValues(alpha: 0.03),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          // Floating circles decoration
+          Positioned(
+            top: -50,
+            right: -30,
+            child: AnimatedBuilder(
+              animation: _pulseController,
+              builder: (context, child) {
+                return Transform.scale(
+                  scale: 1.0 + (_pulseController.value * 0.1),
+                  child: Container(
+                    width: 150,
+                    height: 150,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: _primaryColor.withValues(alpha: 0.1),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          Positioned(
+            bottom: 100,
+            left: -40,
+            child: Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: _accentColor.withValues(alpha: 0.08),
+              ),
+            ),
+          ),
+          // Main content
+          SafeArea(
+            child: CustomScrollView(
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildTimeGreeting(),
+                        const SizedBox(height: 20),
+                        _buildMoodSelector(),
+                        const SizedBox(height: 20),
+                        _buildStatsGrid(),
+                        const SizedBox(height: 20),
+                        _buildQuoteCard(),
+                        const SizedBox(height: 24),
+                        _buildActivityTimeline(),
+                        const SizedBox(height: 100),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTimeGreeting() {
+    final hour = DateTime.now().hour;
+    String greeting;
+    String emoji;
+    if (hour < 12) {
+      greeting = 'Selamat Pagi';
+      emoji = '☀️';
+    } else if (hour < 15) {
+      greeting = 'Selamat Siang';
+      emoji = '🌤️';
+    } else if (hour < 18) {
+      greeting = 'Selamat Sore';
+      emoji = '🌅';
+    } else {
+      greeting = 'Selamat Malam';
+      emoji = '🌙';
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.white, _primaryColor.withValues(alpha: 0.05)],
+        ),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: _primaryColor.withValues(alpha: 0.1),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  _primaryColor.withValues(alpha: 0.15),
+                  _accentColor.withValues(alpha: 0.1),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Text(emoji, style: const TextStyle(fontSize: 28)),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  greeting,
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: _textDark,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Musa',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: _textMuted,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMoodSelector() {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.white, _primaryColor.withValues(alpha: 0.03)],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: _primaryColor.withValues(alpha: 0.1),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Bagaimana kabarmu?',
             style: TextStyle(
-              fontSize: 24,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: _textMuted,
+              letterSpacing: -0.1,
+            ),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: List.generate(_moods.length, (index) {
+              final isSelected = _currentMoodIndex == index;
+              return GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _currentMoodIndex = index;
+                  });
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 250),
+                  curve: Curves.easeOut,
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    gradient: isSelected
+                        ? LinearGradient(
+                            colors: [
+                              _primaryColor.withValues(alpha: 0.2),
+                              _accentColor.withValues(alpha: 0.15),
+                            ],
+                          )
+                        : null,
+                    borderRadius: BorderRadius.circular(14),
+                    border: isSelected
+                        ? Border.all(
+                            color: _primaryColor.withValues(alpha: 0.3),
+                            width: 1.5,
+                          )
+                        : null,
+                  ),
+                  child: Text(
+                    _moods[index],
+                    style: TextStyle(fontSize: isSelected ? 30 : 26),
+                  ),
+                ),
+              );
+            }),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatsGrid() {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildStatCard(
+            value: '12',
+            label: 'Hari Beruntun',
+            icon: Icons.local_fire_department_rounded,
+            color: const Color(0xFFFF6B6B),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildStatCard(
+            value: '47',
+            label: 'Pencapaian',
+            icon: Icons.emoji_events_rounded,
+            color: const Color(0xFFFFD93D),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatCard({
+    required String value,
+    required String label,
+    required IconData icon,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.white, color.withValues(alpha: 0.05)],
+        ),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: color.withValues(alpha: 0.15), width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: color, size: 22),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 26,
+              fontWeight: FontWeight.w800,
+              color: _textDark,
+              letterSpacing: -0.5,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              color: _textMuted,
+              fontWeight: FontWeight.w500,
+              letterSpacing: 0.2,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuoteCard() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [_primaryColor, _accentColor],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: _primaryColor.withValues(alpha: 0.25),
+            blurRadius: 15,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.auto_awesome_rounded,
+              color: Colors.white,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Tetap semangat!',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Hari yang produktif menantimu',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.white.withValues(alpha: 0.85),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActivityTimeline() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Aktivitas',
+          style: TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.w700,
+            color: _textDark,
+            letterSpacing: -0.3,
+          ),
+        ),
+        const SizedBox(height: 16),
+        _buildTimelineItem(
+          time: '10:30',
+          title: 'Menyelesaikan tugas',
+          subtitle: 'Matematika Bab 5',
+          color: _primaryColor,
+        ),
+        _buildTimelineItem(
+          time: '14:15',
+          title: 'Mengikuti kelas',
+          subtitle: 'Pemrograman Web',
+          color: const Color(0xFF6C5CE7),
+        ),
+        _buildTimelineItem(
+          time: '16:00',
+          title: 'Olahraga',
+          subtitle: 'Basket dengan teman',
+          color: const Color(0xFF00B894),
+          isLast: true,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTimelineItem({
+    required String time,
+    required String title,
+    required String subtitle,
+    required Color color,
+    bool isLast = false,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Column(
+          children: [
+            Container(
+              width: 10,
+              height: 10,
+              decoration: BoxDecoration(
+                color: color,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: color.withValues(alpha: 0.3),
+                    blurRadius: 4,
+                    spreadRadius: 1,
+                  ),
+                ],
+              ),
+            ),
+            if (!isLast)
+              Container(
+                width: 2,
+                height: 50,
+                margin: const EdgeInsets.symmetric(vertical: 4),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      color.withValues(alpha: 0.3),
+                      color.withValues(alpha: 0.1),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(1),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Colors.white, color.withValues(alpha: 0.02)],
+              ),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: color.withValues(alpha: 0.15),
+                width: 1,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    time,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: color,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: _textDark,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: _textMuted,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class ProfilePage extends StatelessWidget {
+  const ProfilePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Stack(
+        children: [
+          // Background gradient
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [_primaryColor.withValues(alpha: 0.08), Colors.white],
+                ),
+              ),
+            ),
+          ),
+          // Content
+          SafeArea(
+            child: CustomScrollView(
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                SliverToBoxAdapter(
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 24),
+                      _buildProfileCard(),
+                      const SizedBox(height: 20),
+                      _buildPersonalitySection(),
+                      const SizedBox(height: 16),
+                      _buildContactSection(),
+                      const SizedBox(height: 16),
+                      _buildPreferencesSection(),
+                      const SizedBox(height: 20),
+                      _buildActionButtons(context),
+                      const SizedBox(height: 100),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProfileCard() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            margin: const EdgeInsets.only(top: 50),
+            padding: const EdgeInsets.fromLTRB(20, 60, 20, 24),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.white,
+                  _primaryColor.withValues(alpha: 0.03),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: _primaryColor.withValues(alpha: 0.1),
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: _primaryColor.withValues(alpha: 0.08),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                const Text(
+                  'Musa Ganteng',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    color: _textDark,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        _primaryColor.withValues(alpha: 0.15),
+                        _accentColor.withValues(alpha: 0.1),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: _primaryColor.withValues(alpha: 0.2),
+                      width: 1,
+                    ),
+                  ),
+                  child: Text(
+                    'Siswa Aktif',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: _primaryColor,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.all(5),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: _primaryColor.withValues(alpha: 0.2),
+                      blurRadius: 20,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [_primaryColor, _accentColor],
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons.person_rounded,
+                    size: 50,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPersonalitySection() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.white,
+              _primaryColor.withValues(alpha: 0.02),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: _primaryColor.withValues(alpha: 0.1),
+            width: 1,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Tentang Saya',
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: _textDark,
+                letterSpacing: -0.2,
+              ),
+            ),
+            const SizedBox(height: 14),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _buildTag('Suka Belajar', const Color(0xFF6C5CE7)),
+                _buildTag('Kreatif', const Color(0xFFFF6B6B)),
+                _buildTag('Aktif', const Color(0xFFFFD93D)),
+                _buildTag('Fokus', const Color(0xFF00B894)),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTag(String text, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            color.withValues(alpha: 0.12),
+            color.withValues(alpha: 0.08),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: color.withValues(alpha: 0.25),
+          width: 1,
+        ),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: color,
+          letterSpacing: 0.2,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContactSection() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.white,
+              _primaryColor.withValues(alpha: 0.02),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: _primaryColor.withValues(alpha: 0.1),
+            width: 1,
+          ),
+        ),
+        child: Column(
+          children: [
+            _buildContactRow(Icons.email_rounded, 'musagwanteng@gmail.com'),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 12),
+              child: Divider(height: 1),
+            ),
+            _buildContactRow(Icons.phone_rounded, '+62 851 - 6288 - 4545'),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContactRow(IconData icon, String text) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: _primaryColor.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(icon, size: 20, color: _primaryColor),
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: _textDark,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPreferencesSection() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.white,
+              _primaryColor.withValues(alpha: 0.02),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: _primaryColor.withValues(alpha: 0.1),
+            width: 1,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Pengaturan',
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: _textDark,
+                letterSpacing: -0.2,
+              ),
+            ),
+            const SizedBox(height: 14),
+            _buildPreferenceItem(Icons.dark_mode_rounded, 'Mode Gelap', false),
+            const SizedBox(height: 10),
+            _buildPreferenceItem(
+              Icons.notifications_rounded,
+              'Notifikasi',
+              true,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPreferenceItem(IconData icon, String title, bool value) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: _primaryColor.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, size: 18, color: _primaryColor),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            title,
+            style: TextStyle(
+              fontSize: 14,
               fontWeight: FontWeight.w600,
               color: _textDark,
             ),
+          ),
+        ),
+        Container(
+          width: 44,
+          height: 26,
+          decoration: BoxDecoration(
+            gradient: value
+                ? LinearGradient(
+                    colors: [_primaryColor, _accentColor],
+                  )
+                : null,
+            color: value ? null : Colors.grey.shade300,
+            borderRadius: BorderRadius.circular(13),
+            boxShadow: value
+                ? [
+                    BoxShadow(
+                      color: _primaryColor.withValues(alpha: 0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
+          ),
+          padding: const EdgeInsets.all(2),
+          child: Align(
+            alignment: value ? Alignment.centerRight : Alignment.centerLeft,
+            child: Container(
+              width: 22,
+              height: 22,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 4,
+                    offset: const Offset(0, 1),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionButtons(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        children: [
+          _buildActionButton(
+            'Edit Profil',
+            Icons.edit_rounded,
+            _primaryColor,
+            () {},
+          ),
+          const SizedBox(height: 12),
+          _buildActionButton('Keluar', Icons.logout_rounded, Colors.red, () {
+            Navigator.of(context).pushAndRemoveUntil(
+              PageRouteBuilder(
+                pageBuilder: (context, animation, secondaryAnimation) =>
+                    const SplashPage(),
+                transitionsBuilder:
+                    (context, animation, secondaryAnimation, child) {
+                      const begin = Offset(-1.0, 0.0);
+                      const end = Offset.zero;
+                      const curve = Curves.easeInOutCubic;
+                      var tween = Tween(
+                        begin: begin,
+                        end: end,
+                      ).chain(CurveTween(curve: curve));
+                      var offsetAnimation = animation.drive(tween);
+                      return SlideTransition(
+                        position: offsetAnimation,
+                        child: child,
+                      );
+                    },
+                transitionDuration: const Duration(milliseconds: 500),
+              ),
+              (route) => false,
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionButton(
+    String title,
+    IconData icon,
+    Color color,
+    VoidCallback onTap,
+  ) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.white,
+                color.withValues(alpha: 0.03),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: color.withValues(alpha: 0.2),
+              width: 1.5,
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 19, color: color),
+              const SizedBox(width: 10),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: color,
+                  letterSpacing: 0.2,
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -897,14 +2250,15 @@ class NotFoundPage extends StatelessWidget {
               Text(
                 'Oops! Route "$requestedRoute" tidak ditemukan.',
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 16,
-                  color: Color(0xFF6B7280),
-                ),
+                style: const TextStyle(fontSize: 16, color: Color(0xFF6B7280)),
               ),
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: () => Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false),
+                onPressed: () => Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  '/',
+                  (route) => false,
+                ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _primaryColor,
                   foregroundColor: Colors.white,
@@ -924,9 +2278,9 @@ class _StatusBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return const Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: const [
+      children: [
         Text(
           '9:41',
           style: TextStyle(
@@ -984,7 +2338,9 @@ class _CurvedPanelPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final path = _panelPath(size);
     final paint = Paint()
-      ..shader = _panelGradient.createShader(Rect.fromLTWH(0, 0, size.width, size.height));
+      ..shader = _panelGradient.createShader(
+        Rect.fromLTWH(0, 0, size.width, size.height),
+      );
     canvas.drawPath(path, paint);
   }
 
@@ -993,30 +2349,36 @@ class _CurvedPanelPainter extends CustomPainter {
 }
 
 Path _panelPath(Size size) {
-  final double startY = size.height * 0.2;
-  final double control = size.height * 0.28;
+  final path = Path();
 
-  return Path()
-    ..moveTo(0, startY)
-    ..cubicTo(
-      size.width * 0.18,
-      startY - control * 0.55,
-      size.width * 0.38,
-      startY + control * 0.35,
-      size.width * 0.62,
-      startY - control * 0.2,
-    )
-    ..cubicTo(
-      size.width * 0.82,
-      startY - control * 0.6,
-      size.width * 0.95,
-      startY - control * 0.05,
-      size.width,
-      startY + control * 0.25,
-    )
-    ..lineTo(size.width, size.height)
-    ..lineTo(0, size.height)
-    ..close();
+  // Start from left side at about 1/5 from top
+  path.moveTo(0, size.height * 0.08);
+
+  // Create smooth wave curve across the top
+  path.cubicTo(
+    size.width * 0.25,
+    size.height * -0.02,
+    size.width * 0.45,
+    size.height * 0.15,
+    size.width * 0.65,
+    size.height * 0.06,
+  );
+
+  path.cubicTo(
+    size.width * 0.8,
+    size.height * -0.01,
+    size.width * 0.9,
+    size.height * 0.05,
+    size.width,
+    size.height * 0.08,
+  );
+
+  // Complete the rectangle
+  path.lineTo(size.width, size.height);
+  path.lineTo(0, size.height);
+  path.close();
+
+  return path;
 }
 
 class _BottomCurveClipper extends CustomClipper<Path> {
@@ -1026,21 +2388,29 @@ class _BottomCurveClipper extends CustomClipper<Path> {
   Path getClip(Size size) {
     final path = Path();
 
-    path.moveTo(0, size.height * 0.34);
+    // Start from left side
+    path.moveTo(0, size.height * 0.18);
+
+    // Create smooth wave curve
     path.cubicTo(
-      size.width * 0.18,
-      size.height * 0.18,
-      size.width * 0.42,
-      size.height * 0.46,
-      size.width * 0.66,
-      size.height * 0.24,
+      size.width * 0.25,
+      size.height * 0.08,
+      size.width * 0.45,
+      size.height * 0.25,
+      size.width * 0.65,
+      size.height * 0.14,
     );
-    path.quadraticBezierTo(
-      size.width * 0.86,
-      size.height * 0.16,
+
+    path.cubicTo(
+      size.width * 0.8,
+      size.height * 0.06,
+      size.width * 0.9,
+      size.height * 0.12,
       size.width,
-      size.height * 0.26,
+      size.height * 0.16,
     );
+
+    // Complete the rectangle
     path.lineTo(size.width, size.height);
     path.lineTo(0, size.height);
     path.close();
@@ -1132,18 +2502,22 @@ class _TopographicPatternPainter extends CustomPainter {
       );
 
     final Path contourLoop = Path()
-      ..addOval(Rect.fromCenter(
-        center: Offset(width * 0.27, height * 0.65),
-        width: width * 0.26,
-        height: height * 0.22,
-      ));
+      ..addOval(
+        Rect.fromCenter(
+          center: Offset(width * 0.27, height * 0.65),
+          width: width * 0.26,
+          height: height * 0.22,
+        ),
+      );
 
     final Path contourLoopB = Path()
-      ..addOval(Rect.fromCenter(
-        center: Offset(width * 0.78, height * 0.24),
-        width: width * 0.34,
-        height: height * 0.28,
-      ));
+      ..addOval(
+        Rect.fromCenter(
+          center: Offset(width * 0.78, height * 0.24),
+          width: width * 0.34,
+          height: height * 0.28,
+        ),
+      );
 
     final Path accentSwirl = Path()
       ..moveTo(width * 0.46, height * 0.78)
